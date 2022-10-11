@@ -84,7 +84,7 @@ class DownLoader(QThread):
             precent_value = float(d['_percent_str'].strip("%"))
 
             # {'status': 'downloading', 'downloaded_bytes': 8069343, 'total_bytes': 18819771, 'tmpfilename': 'VUOAszEiR8I.mp4.part', 'filename': 'VUOAszEiR8I.mp4', 'eta': 201, 'speed': 53334.97284900934, 'elapsed': 0.717207670211792, '_eta_str': '03:21', '_percent_str': ' 42.9%', '_speed_str': '52.08KiB/s', '_total_bytes_str': '17.95MiB'}
-        self.downloadSignal.emit({"value": precent_value, "filepath": save_path})
+        self.downloadSignal.emit({"value": precent_value, "filepath": save_path, "filename": d["filename"]})
 
     def download(self, taskParam):
         task = {"ident": threading.current_thread().ident, "data": taskParam}
@@ -252,11 +252,13 @@ class Card(QWidget):
         self.parent.del_card(self.list_item, self.data["webpage_url"])
 
     def update_process(self, data):
-        self.progress.set_value(data['value'])
-        self.data["process"] = data['value']
-        if data['value'] == 100.0:
-            self.download_button.set_icon(Functions.set_svg_icon("icon_dir.svg"))
-            self.data["filepath"] = data['filepath']
+        video_id = os.path.splitext(data["filename"])[0]
+        if video_id in self.data["webpage_url"]:
+            self.progress.set_value(data['value'])
+            self.data["process"] = data['value']
+            if data['value'] == 100.0:
+                self.download_button.set_icon(Functions.set_svg_icon("icon_dir.svg"))
+                self.data["filepath"] = data['filepath']
 
     def download(self, data):
         if self.download_button._set_icon_path == Functions.set_svg_icon("icon_pause.svg"):
@@ -438,7 +440,8 @@ class HomePage(object):
         self.save_download_file()
 
     def add_task(self):
-        # url = self.line_edit.text()
-        url = "https://www.bilibili.com/video/BV1Jd4y167xF/?spm_id_from=333.1007.tianma.1-2-2.click&vd_source=749832a882249f9f0a54602e4b308808"
+        url = self.line_edit.text()
+        # url = "https://www.bilibili.com/video/BV1Jd4y167xF/?spm_id_from=333.1007.tianma.1-2-2.click&vd_source=749832a882249f9f0a54602e4b308808"
+        #https://www.bilibili.com/video/BV11e4y1b7pZ/?spm_id_from=333.1007.tianma.1-1-1.click&vd_source=749832a882249f9f0a54602e4b308808
         self.downloader.infoSignal.connect(self.add_card)
         self.downloader.runTask(0, {"url": url})
