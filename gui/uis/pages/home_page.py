@@ -428,7 +428,7 @@ class HomePage(object):
         self.jinju_line_edit.setMinimumHeight(32)
 
         self.jinju_search_button = PyIconButton(
-            icon_path = Functions.set_svg_icon("icon_search.svg"),
+            icon_path = Functions.set_svg_icon("icon_reset.svg"),
             parent = self.central_widget,
             app_parent = self.central_widget,
             tooltip_text = "Jin Ju",
