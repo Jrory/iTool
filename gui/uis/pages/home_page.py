@@ -14,6 +14,7 @@ from gui.core.json_settings import Settings
 from gui.core.json_themes import Themes
 
 import os, threading, inspect, ctypes, youtube_dl, webbrowser, json
+import requests, re, json, datetime, random
 from concurrent.futures import ThreadPoolExecutor
 
 class DownLoader(QThread):
@@ -351,6 +352,10 @@ class HomePage(object):
         self.row_2_layout.setObjectName(u"row_2_layout")
         self.verticalLayout.addLayout(self.row_2_layout)
 
+        self.row_3_layout = QHBoxLayout()
+        self.row_3_layout.setObjectName(u"row_3_layout")
+        self.verticalLayout.addLayout(self.row_3_layout)
+
         self.scroll_area.setWidget(self.contents)
         self.page_layout.addWidget(self.scroll_area)
 
@@ -407,9 +412,61 @@ class HomePage(object):
             context_color = self.themes["app_color"]["context_color"]
         )
 
+
+        # PY LINE EDIT
+        self.jinju_line_edit = PyLineEdit(
+            text = "",
+            place_holder_text = "每日金句",
+            radius = 8,
+            border_size = 2,
+            color = self.themes["app_color"]["pink"],
+            selection_color = self.themes["app_color"]["white"],
+            bg_color = self.themes["app_color"]["dark_one"],
+            bg_color_active = self.themes["app_color"]["dark_three"],
+            context_color = self.themes["app_color"]["context_color"]
+        )
+        self.jinju_line_edit.setMinimumHeight(32)
+
+        self.jinju_search_button = PyIconButton(
+            icon_path = Functions.set_svg_icon("icon_search.svg"),
+            parent = self.central_widget,
+            app_parent = self.central_widget,
+            tooltip_text = "Jin Ju",
+            width = 32,
+            height = 32,
+            radius = 16,
+            dark_one = self.themes["app_color"]["dark_one"],
+            icon_color = self.themes["app_color"]["icon_color"],
+            icon_color_hover = self.themes["app_color"]["icon_hover"],
+            icon_color_pressed = self.themes["app_color"]["icon_active"],
+            icon_color_active = self.themes["app_color"]["icon_active"],
+            bg_color = self.themes["app_color"]["dark_four"],
+            bg_color_hover = self.themes["app_color"]["dark_three"],
+            bg_color_pressed = self.themes["app_color"]["pink"],
+            is_original = True
+        )
+
+        self.jinju_search_button.clicked.connect(self.get_jinju)
+
         self.row_1_layout.addWidget(self.line_edit)
         self.row_1_layout.addWidget(self.search_button)
         self.row_2_layout.addWidget(self.list_widget)
+        self.row_3_layout.addWidget(self.jinju_line_edit)
+        self.row_3_layout.addWidget(self.jinju_search_button)
+
+    def get_jinju(self):
+        day = random.randint(1, 1000)
+        temp_date = datetime.datetime.now()
+
+        date = (temp_date + datetime.timedelta(days=-day)).strftime("%Y-%m-%d")  # 获取当前日期的前一天日期
+
+        url = "http://sentence.iciba.com/index.php?callback=jQuery19002826870162613464_1665562221583&c=dailysentence&m=getdetail&title=" + date + "&_=1665562221597"
+        r = requests.get(url)
+        result_list = re.findall(r"[(](.*?)[)]", r.text)
+        result = json.loads(result_list [0])
+
+        content = result["content"] + " ( " +  result["note"] + " )"
+        self.jinju_line_edit.setText(content)
 
     def close_all_task(self):
         for card in self.card_list:
