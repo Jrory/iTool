@@ -95,8 +95,8 @@ class DownLoader(QThread):
 
         # 定义某些下载参数`
         ydl_opts = {
-            'format' : 'bestvideo+bestaudio',
-            # 'format' : 'best', bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+            'format' : 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            # 'format' : 'best', bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' 'bestvideo+bestaudio'
             'progress_hooks': [self.hook],
             'outtmpl': '%(id)s.%(ext)s',
         }
