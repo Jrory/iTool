@@ -85,7 +85,7 @@ class DownLoader(QThread):
             precent_value = float(d['_percent_str'].strip("%"))
 
             # {'status': 'downloading', 'downloaded_bytes': 8069343, 'total_bytes': 18819771, 'tmpfilename': 'VUOAszEiR8I.mp4.part', 'filename': 'VUOAszEiR8I.mp4', 'eta': 201, 'speed': 53334.97284900934, 'elapsed': 0.717207670211792, '_eta_str': '03:21', '_percent_str': ' 42.9%', '_speed_str': '52.08KiB/s', '_total_bytes_str': '17.95MiB'}
-        self.downloadSignal.emit({"value": precent_value, "filepath": save_path, "filename": d["filename"]})
+        self.downloadSignal.emit({"value": precent_value, "filepath": save_path, "video_id": d["tmpfilename"].split(".")[0]})
 
     def download(self, taskParam):
         task = {"ident": threading.current_thread().ident, "data": taskParam}
@@ -93,9 +93,10 @@ class DownLoader(QThread):
 
         self.run_task_list.append(task)
 
-        # 定义某些下载参数
+        # 定义某些下载参数`
         ydl_opts = {
-            'format' : 'best',
+            'format' : 'bestvideo+bestaudio',
+            # 'format' : 'best', bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
             'progress_hooks': [self.hook],
             'outtmpl': '%(id)s.%(ext)s',
         }
@@ -253,8 +254,7 @@ class Card(QWidget):
         self.parent.del_card(self.list_item, self.data["webpage_url"])
 
     def update_process(self, data):
-        video_id = os.path.splitext(data["filename"])[0]
-        if video_id in self.data["webpage_url"]:
+        if data["video_id"] in self.data["webpage_url"]:
             self.progress.set_value(data['value'])
             self.data["process"] = data['value']
             if data['value'] == 100.0:
@@ -479,6 +479,12 @@ class HomePage(object):
                 del self.card_list[i]
         self.save_download_file()
 
+    def exist_card(self, url):
+        for i in range(len(self.card_list)):
+            if self.card_list[i].data["webpage_url"] == url:
+                return True
+        return False
+
     def del_card(self, item, webpage_url):
         self.list_widget.takeItem(self.list_widget.row(item))
         self.del_card_list(webpage_url)
@@ -498,7 +504,8 @@ class HomePage(object):
 
     def add_task(self):
         url = self.line_edit.text()
-        # url = "https://www.bilibili.com/video/BV1Jd4y167xF/?spm_id_from=333.1007.tianma.1-2-2.click&vd_source=749832a882249f9f0a54602e4b308808"
-        #https://www.bilibili.com/video/BV11e4y1b7pZ/?spm_id_from=333.1007.tianma.1-1-1.click&vd_source=749832a882249f9f0a54602e4b308808
+        if self.exist_card(url):
+            self.line_edit.setText("")
+            return
         self.downloader.infoSignal.connect(self.add_card)
         self.downloader.runTask(0, {"url": url})
